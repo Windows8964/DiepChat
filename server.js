@@ -9,16 +9,16 @@ wss.on('connection', ws => {
   ws.id = Math.random().toString(16).substr(2);
   console.log('connection');
   ws.on('message', (msg) => {
-    if (typeof msg !== 'string') return ws.close(1020, 'you are gay');
+    if (typeof msg !== 'string') return ws.close(1020, 'you are bad');
     try
     {
       msg = JSON.parse(msg);
     }
     catch
     {
-      return ws.close(1020, 'you are still gay');
+      return ws.close(1020, 'you are still bad');
     }
-    if (!(msg instanceof Object)) return ws.close(1020, 'you are really gay');
+    if (!(msg instanceof Object)) return ws.close(1020, 'you are really bad');
     console.log(msg);
     switch (msg.type)
     {
