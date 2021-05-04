@@ -10,17 +10,27 @@
 // ==/UserScript==
 
 const VPS_URL = 'wss://crabby.ciphercoded.com/diepchat';
-unsafeWindow.chatHost = new WebSocket(VPS_URL);
-WebSocket.prototype.hook = WebSocket.prototype.send;
-WebSocket.prototype.send = function (msg) {
-    if (this.url !== VPS_URL) unsafeWindow.url = this.url;
-    this.hook(msg);
+const m28ServerRegex = /^wss?:\/\/[a-z0-9]{4,}\.s\.m28n\.net\/$/g;
+
+const chatHost = unsafeWindow.chatHost = new WebSocket(VPS_URL);
+
+const _send = WebSocket.prototype.send;
+unsafeWindow.WebSocket.prototype.send = function (buffer) {
+    if (m28ServerRegex.test(this.url)) unsafeWindow.url = this.url;
+    
+    _send.call(this, buffer);
 }
-unsafeWindow.chatHost.onmessage = ({ data }) => {
+chatHost.onmessage = ({ data }) => {
     data = JSON.parse(data);
-    if (data.type === 'message') alert(`${data.from} just sent: ${data.data}`)
+    
+    if (data.type === 'message') alert(`${data.from} just sent: ${data.data}`);
 }
 document.addEventListener('keydown', ({ code }) => {
-    if (code === 'Enter') return unsafeWindow.chatHost.send(JSON.stringify({ type: 'join' , server: unsafeWindow.url, name: unsafeWindow.textInput.value}));
-    if (code === 'KeyV') return unsafeWindow.chatHost.send(JSON.stringify({ type: 'message', message: prompt('What would you like to say?') }))
+    if (code === 'Enter') return chatHost.send(JSON.stringify({ type: 'join' , server: unsafeWindow.url, name: unsafeWindow.textInput.value}));
+    if (code === 'KeyV') {
+        let msg = prompt('What would you like to say?');
+        if (!msg) return alert('Cancelled');
+        
+        return chatHost.send(JSON.stringify({ type: 'message', message: msg.slice(0, 1000) }))
+    }
 ;})
